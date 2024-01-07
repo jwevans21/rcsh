@@ -11,11 +11,11 @@ language.
     - [X] `exit` Used to exit the shell
     - [X] `status` Used to get the exit status of the last foreground command
 - [X] Basic foreground commands
-- [ ] Add CLI arguments
-    - [ ] `-c` Run a command and exit
-    - [ ] `-h` Print help message and exit
-    - [ ] `-v` Print version and exit
-    - [ ] `-V` Verbose mode (used for debugging the shell)
+- [X] Add CLI arguments
+    - [X] `-c` Run a command and exit
+    - [X] `-h` `-?` Print help message and exit
+    - [X] `-V` Print version and exit
+    - [X] `-v` Verbose mode (used for debugging the shell)
 - [ ] Basic input/output redirection
 - [ ] Background commands
 - [ ] Basic signal handling
@@ -89,6 +89,10 @@ TODO
 TODO
 
 ### `fg`
+
+TODO
+
+### `exec`
 
 TODO
 

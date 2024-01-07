@@ -21,10 +21,11 @@ command_t *command_new() {
 void command_free(command_t **const self) {
   command_t *cmd = *self;
 
-  if (cmd->source != NULL) {
-    free(cmd->source);
-    cmd->source = NULL;
-  }
+  command_free_no_src(self);
+}
+
+void command_free_no_src(command_t **const self) {
+  command_t *cmd = *self;
 
   if (cmd->argv != NULL) {
     for (size_t i = 0; i < cmd->argc; i++) {
@@ -44,6 +45,7 @@ int command_read_from(command_t *self, FILE *in) {
   char *buffer = NULL;
   size_t len = 0, len_read = 0;
 
+  TRACE("Reading input line");
   len_read = getline(&buffer, &len, in);
   if (len_read < 0) {
     perror(LOC "getline");
@@ -53,6 +55,8 @@ int command_read_from(command_t *self, FILE *in) {
   // Remove trailing newline
   buffer[len_read - 1] = '\0';
 
+  TRACEV("Read %zu bytes: \"%s\"", len_read, buffer);
+  TRACE("Parsing input line");
   if (command_parse_string(self, buffer) < 0) {
     return -1;
   }
@@ -61,7 +65,9 @@ int command_read_from(command_t *self, FILE *in) {
 }
 
 int command_add_arg(command_t *self, size_t current, char *start, char *end) {
+  TRACE("Adding new argument");
   if (current >= self->argc_cap - 1) {
+    TRACE("Resizing argv for new argument");
     size_t new_cap = ((self->argc_cap - 1) * 2) + 1;
     char **new_argv = reallocarray(self->argv, new_cap, sizeof(char *));
     if (new_argv == NULL) {
@@ -75,12 +81,14 @@ int command_add_arg(command_t *self, size_t current, char *start, char *end) {
 
   size_t len = end - start;
 
+  TRACE("Allocating memory for new argument");
   self->argv[current] = calloc(len + 1, sizeof(char));
   if (self->argv[current] == NULL) {
     perror(LOC "calloc");
     return -1;
   }
 
+  TRACEV("Copying %zu bytes from %p to %p", len, start, self->argv[current]);
   strncpy(self->argv[current], start, len);
   self->argc++;
 
@@ -93,6 +101,8 @@ int command_parse_string(command_t *self, char *str) {
   }
   self->source = str;
 
+  TRACEV("Parsing string \"%s\"", str);
+  TRACE("Allocating memory for argv");
   self->argc_cap = 5;
   self->argv = calloc(self->argc_cap, sizeof(char *));
   if (self->argv == NULL) {
@@ -102,6 +112,7 @@ int command_parse_string(command_t *self, char *str) {
 
   size_t current_arg = 0;
   char *start = str;
+
 
   while (*str != '\0') {
     if (isspace(*str)) {

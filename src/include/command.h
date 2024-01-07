@@ -19,12 +19,19 @@ typedef enum command_status {
   /// The command was not executed because of an error. This caused the shell to
   /// exit
   COMMAND_FAILURE,
+  /// The command was not executed because of an error. This did not cause the
+  /// shell to exit, but the command was not executed.
+  ///
+  /// This is kind of a lie since the shell will exit, but the shell that exited
+  /// is a forked child process and not the main shell process.
+  COMMAND_EXEC_FAILURE,
   /// The command was the exit command and the shell should exit
   COMMAND_EXIT,
 } command_status_t;
 
 command_t *command_new();
 void command_free(command_t **const self);
+void command_free_no_src(command_t **const self);
 
 command_status_t command_run(const command_t *const self, int *const exit_code);
 

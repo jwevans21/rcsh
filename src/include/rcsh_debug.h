@@ -13,6 +13,16 @@ static volatile enum {
   DEBUG_TRACE = 4,
 } debug_level = DEBUG_NONE;
 
+static inline void rcsh_debug_set_level(int level) {
+  if (level < DEBUG_NONE) {
+    level = DEBUG_NONE;
+  } else if (level > DEBUG_TRACE) {
+    level = DEBUG_TRACE;
+  } else {
+    debug_level = level;
+  }
+}
+
 #define S1(x) #x
 #define S2(x) S1(x)
 #define LOC __FILE__ ":" S2(__LINE__) " -> "

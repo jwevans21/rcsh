@@ -17,7 +17,7 @@ command_status_t external_command(const command_t *const self,
   } else if (pid == 0) {
     if (execvp(self->argv[0], self->argv) < 0) {
       ERROR_PERROR("execvp");
-      return COMMAND_FAILURE;
+      return COMMAND_EXEC_FAILURE;
     }
   } else {
     int status;
