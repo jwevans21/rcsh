@@ -11,6 +11,9 @@ command_t *command_new() {
   self->argc = 0;
   self->argv = NULL;
 
+  self->in = NULL;
+  self->out = NULL;
+
   return self;
 }
 
@@ -33,6 +36,16 @@ void command_free_no_src(command_t **const self) {
     cmd->argv = NULL;
   }
 
+  if (cmd->in != NULL) {
+    fclose(cmd->in);
+    cmd->in = NULL;
+  }
+
+  if (cmd->out != NULL) {
+    fclose(cmd->out);
+    cmd->out = NULL;
+  }
+
   free(cmd);
   *self = NULL;
 }
@@ -46,5 +59,7 @@ void command_debug(const command_t *const self) {
     rcsh_trace("\t\t\"%s\",", self->argv[i]);
   }
   rcsh_trace("\t]");
+  rcsh_trace("\tin = %p", self->in);
+  rcsh_trace("\tout = %p", self->out);
   rcsh_trace("}");
 }

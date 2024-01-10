@@ -6,104 +6,266 @@
 
 #include <command.h>
 
-int command_read_from(command_t *self, FILE *in) {
-  char *buffer = NULL;
-  size_t len = 0, len_read = 0;
+int command_add_argument(command_t *const self, char *const arg) {
+  static int redirect_out_count = 0;
+  static int redirect_in_count = 0;
 
-  len_read = getline(&buffer, &len, in);
-  
-  if (len_read < 0) {
-    perror(LOC "getline");
-    return -1;
-  }
-  rcsh_trace("Read %zu bytes from input with a buffer size of %zu", len_read,
-             len);
-  rcsh_info("Read buffer: \"%s\"", buffer);
-
-  // Remove trailing newline
-  buffer[len_read - 1] = '\0';
-
-  rcsh_trace("Parsing input line");
-  if (command_parse_string(self, buffer) < 0) {
-    return -1;
-  }
-
-  return 0;
-}
-
-int command_add_arg(command_t *self, size_t current, char *start, char *end) {
-  rcsh_trace("Adding new argument");
-  if (current >= self->argc_cap - 1) {
-    rcsh_trace("Resizing argv for new argument");
-    size_t new_cap = ((self->argc_cap - 1) * 2) + 1;
-    char **new_argv = reallocarray(self->argv, new_cap, sizeof(char *));
-    if (new_argv == NULL) {
-      perror(LOC "reallocarray");
+  if (redirect_out_count > 0) {
+    if (self->out != NULL) {
+      rcsh_error("Output redirection already set");
       return -1;
     }
 
-    self->argc_cap = new_cap;
-    self->argv = new_argv;
+    self->out = fopen(arg, redirect_out_count > 1 ? "a" : "w");
+    redirect_out_count = 0;
+    return 0;
   }
 
-  size_t len = end - start;
+  if (redirect_in_count > 0) {
+    if (self->in != NULL) {
+      rcsh_error("Input redirection already set");
+      return -1;
+    }
 
-  rcsh_trace("Allocating memory for new argument");
-  self->argv[current] = calloc(len + 1, sizeof(char));
-  if (self->argv[current] == NULL) {
-    perror(LOC "calloc");
-    return -1;
+    self->in = fopen(arg, "r");
+    if (self->in == NULL || ferror(self->in)) {
+      rcsh_error("Failed to open file for input redirection");
+      return -1;
+    }
+
+    redirect_in_count = 0;
+    return 0;
   }
 
-  rcsh_trace("Copying %zu bytes from %p to %p", len, start,
-             self->argv[current]);
-  strncpy(self->argv[current], start, len);
+  if (strncmp(arg, ">>", 2) == 0) {
+    redirect_out_count = 2;
+    return 0;
+  }
+
+  if (strncmp(arg, ">", 1) == 0) {
+    redirect_out_count = 1;
+    return 0;
+  }
+
+  if (strncmp(arg, "<", 1) == 0) {
+    redirect_in_count = 1;
+    return 0;
+  }
+
+  if (self->argc_cap == 0) {
+    self->argv = calloc(1, sizeof(char *));
+    if (self->argv == NULL) {
+      rcsh_error("Failed to allocate memory for argv");
+      return -1;
+    }
+    self->argc_cap = 1;
+  }
+
+  if (self->argc >= self->argc_cap) {
+    self->argc_cap *= 2;
+
+    self->argv = reallocarray(self->argv, self->argc_cap, sizeof(char *));
+    if (self->argv == NULL) {
+      rcsh_error("Failed to reallocate memory for argv");
+      return -1;
+    }
+
+    for (size_t i = self->argc; i < self->argc_cap; i++) {
+      self->argv[i] = NULL;
+    }
+  }
+
+  self->argv[self->argc] = arg;
   self->argc++;
 
   return 0;
 }
 
-int command_parse_string(command_t *self, char *str) {
-  if (str == NULL) {
-    return -1;
-  }
-  self->source = str;
-
-  rcsh_trace("Parsing string \"%s\"", str);
-  rcsh_trace("Allocating memory for argv");
-  self->argc_cap = 5;
-  self->argv = calloc(self->argc_cap, sizeof(char *));
-  if (self->argv == NULL) {
-    perror(LOC "calloc");
-    return -1;
+char *command_next_argument(char **const saveptr) {
+  if (saveptr == NULL) {
+    rcsh_error("saveptr is NULL" LOC);
+    return NULL;
   }
 
-  size_t current_arg = 0;
-  char *start = str;
+  if (*saveptr == NULL) {
+    rcsh_error("*saveptr is NULL" LOC);
+    return NULL;
+  }
 
-  while (*str != '\0') {
-    if (isspace(*str)) {
-      if (str == start) {
-        start++;
-        str++;
-      } else {
-        if (command_add_arg(self, current_arg, start, str) < 0) {
-          return -1;
-        }
-        current_arg++;
-        str++;
-        start = str;
+  if (**saveptr == '\0') {
+    rcsh_trace("Reached end of string");
+    return NULL;
+  }
+
+  char *start = *saveptr;
+  char *end = *saveptr;
+  char *arg = NULL;
+
+  // consume leading whitespace
+  while (*end != '\0' && isspace(*end)) {
+    end++;
+  }
+
+  if (*end == '\0') {
+    rcsh_trace("Reached end of string");
+    return NULL;
+  }
+
+  start = end;
+
+  if (*end == '"') {
+    end++;
+    start = end;
+    while (*end != '\0' && (*end != '"' && *(end - 1) != '\\')) {
+      end++;
+    }
+    if (*end == '\0') {
+      rcsh_error("Unmatched double quote");
+      return NULL;
+    }
+
+    arg = strndup(start, end - start);
+    if (arg == NULL) {
+      rcsh_error("Failed to duplicate argument string");
+      return NULL;
+    }
+
+    end++;
+  } else {
+    while (*end != '\0' && !isspace(*end)) {
+      end++;
+    }
+
+    arg = strndup(start, end - start);
+    if (arg == NULL) {
+      rcsh_error("Failed to duplicate argument string");
+      return NULL;
+    }
+  }
+
+  *saveptr = end;
+  return arg;
+}
+
+command_parse_result_t command_from_file(FILE *const file) {
+  command_parse_result_t result = {0};
+
+  char *line = NULL;
+  size_t line_size = 0;
+  ssize_t line_len = 0;
+  line_len = getline(&line, &line_size, file);
+  if (line_len < 0) {
+    rcsh_error("Failed to read line from file");
+    result.status = COMMAND_PARSE_FAILURE;
+    return result;
+  }
+
+  result.command = command_new();
+  if (result.command == NULL) {
+    rcsh_error("Failed to allocate memory for command");
+    result.status = COMMAND_PARSE_FAILURE;
+    return result;
+  }
+
+  result.command->source = line;
+
+  char *saveptr = line;
+  char *arg = NULL;
+
+  while ((arg = command_next_argument(&saveptr)) != NULL) {
+    if (command_add_argument(result.command, arg) < 0) {
+      rcsh_error("Failed to add argument to command");
+      command_free(&result.command);
+      result.status = COMMAND_PARSE_FAILURE;
+      return result;
+    }
+  }
+
+  result.status = COMMAND_PARSE_COMPLETE;
+  return result;
+}
+
+command_parse_result_t command_from_string(const char *const string) {
+  command_parse_result_t result = {0};
+  result.command = command_new();
+  if (result.command == NULL) {
+    rcsh_error("Failed to allocate memory for command");
+    result.status = COMMAND_PARSE_FAILURE;
+    result.command = NULL;
+    return result;
+  }
+
+  result.command->source = strdup(string);
+  if (result.command->source == NULL) {
+    rcsh_error("Failed to duplicate string");
+    command_free(&result.command);
+    result.status = COMMAND_PARSE_FAILURE;
+    result.command = NULL;
+    return result;
+  }
+
+  char *start = result.command->source;
+  char *end = result.command->source;
+
+  while (*end != '\0') {
+    start = end;
+    if (isspace(*end)) {
+      end++;
+    } else if (*end == '"') {
+      end++;
+      start = end;
+      while (*end != '\0' && *end != '"') {
+        end++;
       }
+      if (*end == '\0') {
+        rcsh_error("Unmatched double quote");
+        command_free(&result.command);
+        result.status = COMMAND_PARSE_FAILURE;
+        result.command = NULL;
+        return result;
+      }
+
+      char *arg = strndup(start, end - start);
+      if (arg == NULL) {
+        rcsh_error("Failed to duplicate argument string");
+        command_free(&result.command);
+        result.status = COMMAND_PARSE_FAILURE;
+        result.command = NULL;
+        return result;
+      }
+
+      if (command_add_argument(result.command, arg) < 0) {
+        rcsh_error("Failed to add argument to command");
+        command_free(&result.command);
+        result.status = COMMAND_PARSE_FAILURE;
+        result.command = NULL;
+        return result;
+      }
+
+      end++;
     } else {
-      str++;
+      while (*end != '\0' && !isspace(*end) && *end != '"') {
+        end++;
+      }
+
+      char *arg = strndup(start, end - start);
+      if (arg == NULL) {
+        rcsh_error("Failed to duplicate argument string");
+        command_free(&result.command);
+        result.status = COMMAND_PARSE_FAILURE;
+        result.command = NULL;
+        return result;
+      }
+
+      if (command_add_argument(result.command, arg) < 0) {
+        rcsh_error("Failed to add argument to command");
+        command_free(&result.command);
+        result.status = COMMAND_PARSE_FAILURE;
+        result.command = NULL;
+        return result;
+      }
     }
   }
 
-  if (str != start) {
-    if (command_add_arg(self, current_arg, start, str) < 0) {
-      return -1;
-    }
-  }
-
-  return 0;
+  return result;
 }

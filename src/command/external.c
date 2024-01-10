@@ -14,6 +14,16 @@ command_status_t command_run_external(const command_t *const self,
     rcsh_error("fork");
     return COMMAND_FAILURE;
   } else if (pid == 0) {
+
+    if (self->in != NULL) {
+      dup2(fileno(self->in), STDIN_FILENO);
+    }
+
+    if (self->out != NULL) {
+      dup2(fileno(self->out), STDOUT_FILENO);
+    }
+
+
     if (execvp(self->argv[0], self->argv) < 0) {
       rcsh_error("execvp");
       return COMMAND_EXEC_FAILURE;

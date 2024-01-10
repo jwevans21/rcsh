@@ -1,5 +1,7 @@
 #include <errno.h>
+#include <linux/limits.h>
 #include <pwd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -36,6 +38,11 @@ command_status_t builtin_cd(const command_t *const self, int *const exit_code) {
       return COMMAND_SUCCESS;
     }
   }
+
+  char pwd[PATH_MAX] = {0};
+
+
+  setenv("PWD", getcwd(pwd, PATH_MAX), 1);
 
   *exit_code = 0;
   return COMMAND_SUCCESS;

@@ -26,12 +26,14 @@ int shell_loop(const struct cli_args *const args) {
     fprintf(stdout, "%d $ ", ctx->pid);
     fflush(stdout);
 
-    command_t *cmd = command_new();
-    if (command_read_from(cmd, stdin) < 0) {
-      rcsh_error("Error reading command");
+    command_parse_result_t parse_result = command_from_file(stdin);
+
+    if (parse_result.status == COMMAND_PARSE_FAILURE) {
+      rcsh_error("Failed to parse command from stdin");
       return -1;
     }
 
+    command_t *cmd = parse_result.command;
     command_debug(cmd);
     
     command_status_t ret = command_run(cmd, &ctx->last_exit_status);
@@ -61,6 +63,8 @@ int shell_loop(const struct cli_args *const args) {
     command_free(&cmd);
 
   } while (1);
+
+  shell_ctx_free(ctx);
 
   return 0;
 }
