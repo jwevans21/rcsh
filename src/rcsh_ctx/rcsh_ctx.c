@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +23,7 @@ rcsh_ctx_init (rcsh_ctx_t *const self)
       rcsh_log_error ("Unable to open /dev/null: %s", strerror (errno));
       exit (1);
     }
-  rcsh_log_trace ("Opened /dev/null %p", self->null);
+  rcsh_log_trace ("Opened /dev/null %p", (void *)self->null);
 
   self->exit_status = 0;
 }

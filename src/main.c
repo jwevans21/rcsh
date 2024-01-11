@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -7,21 +5,26 @@
 #include <rcsh_cmd.h>
 #include <rcsh_ctx.h>
 #include <rcsh_log.h>
+#include <rcsh_run.h>
 
 int
 main (int argc, char *argv[])
 {
+  (void)argc;
+  (void)argv;
   rcsh_log_set_level (RCSH_LOG_LEVEL_TRACE);
   rcsh_log_trace ("Initializing shell context");
   rcsh_ctx_t ctx = { 0 };
   rcsh_ctx_init (&ctx);
 
+  int continue_loop = 1;
   do
     {
       rcsh_log_trace ("Checking for EOF in stdin");
       if (feof (stdin))
         {
           rcsh_log_info ("Encountered EOF on stdin");
+          continue_loop = 0;
           break;
         }
 
@@ -40,16 +43,29 @@ main (int argc, char *argv[])
 
       rcsh_cmd_debug (cmd);
 
-      rcsh_log_trace ("Running the command (TODO)");
+      rcsh_log_trace ("Running the command");
+      // NOTE: This call consumes the command (`cmd`) so it will be unusable
+      // after this. As such it is set to null after to prevent use of the
+      // command.
+      rcsh_run_status_t res = rcsh_run_command (cmd, &ctx);
+      cmd = NULL; // WARN: Do not remove for safety. See above.
 
-      rcsh_log_trace ("Updating shell context with exit status or background "
-                      "process (TODO)");
-
-      // sleep (5);
-
-      rcsh_cmd_deinit (&cmd);
+      rcsh_log_trace ("Checking the result of the command");
+      switch (res)
+        {
+        case RCSH_RUN_STATUS_SUCCESS:
+          rcsh_log_trace ("Command ran successfully");
+          break;
+        case RCSH_RUN_STATUS_EXIT:
+          rcsh_log_trace ("Command exited the shell");
+          continue_loop = 0;
+          break;
+        case RCSH_RUN_STATUS_FAILURE:
+          rcsh_log_trace ("Command failed to run");
+          break;
+        }
     }
-  while (1);
+  while (continue_loop);
 
   rcsh_log_trace ("Deinitializing shell context");
   rcsh_ctx_deint (&ctx);

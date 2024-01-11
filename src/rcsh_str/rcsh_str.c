@@ -1,12 +1,10 @@
-#define _POSIX_C_SOURCE 200809L
-
 #include <stdlib.h>
 #include <string.h>
 
 #include <rcsh_str.h>
 
 rcsh_str_t *
-rcsh_str_init ()
+rcsh_str_init (void)
 {
   rcsh_str_t *self = calloc (1, sizeof (rcsh_str_t));
 
@@ -55,7 +53,7 @@ rcsh_str_append_str (rcsh_str_t *const self, char *str)
     return;
 
   size_t len = strlen (str);
-  return rcsh_str_append_str_n (self, str, len);
+  rcsh_str_append_str_n (self, str, len);
 }
 
 void

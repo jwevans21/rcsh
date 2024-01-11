@@ -1,8 +1,6 @@
 #ifndef __JWEVANS__RCSH__LOG_H_
 #define __JWEVANS__RCSH__LOG_H_
 
-#define _POSIX_C_SOURCE 200809L
-
 typedef enum rcsh_log_level
 {
   RCSH_LOG_LEVEL_QUIET = 0,

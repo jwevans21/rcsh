@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
 #define __JWEVANS__RCSH__CMD_H__INTERNAL__ 1
 
 #include <ctype.h>

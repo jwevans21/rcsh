@@ -1,10 +1,36 @@
 #ifndef __JWEVANS__RCSH__CMD_H_
 #define __JWEVANS__RCSH__CMD_H_
 
-#define _POSIX_C_SOURCE 200809L
-
 #include <stddef.h>
 #include <stdio.h>
+
+// typedef struct rcsh_arg {
+//   enum {
+//     RCSH_ARG_PARAMETER_EXPANSION,
+//     RCSH_ARG_COMMAND_SUBSTITUTION,
+//     RCSH_ARG_ARITHMETIC_EXPANSION,
+//     RCSH_ARG_NORMAL,
+//     RCSH_ARG_COMBINATION,
+//   } type;
+//   union {
+//     struct {
+//       char *name;
+//     } parameter_expansion;
+//     struct {
+//       rcsh_cmd_t *cmd;
+//     } command_substitution;
+//     struct {
+//       char *expression;
+//     } arithmetic_expansion;
+//     struct {
+//       char *string;
+//     } normal;
+//     struct {
+//       struct rcsh_arg *args;
+//       size_t argc;
+//     } combination;
+//   } data;
+// } rcsh_arg_t;
 
 typedef struct rcsh_cmd
 {
@@ -13,7 +39,7 @@ typedef struct rcsh_cmd
   char **argv;
 } rcsh_cmd_t;
 
-rcsh_cmd_t *rcsh_cmd_init ();
+rcsh_cmd_t *rcsh_cmd_init (void);
 void rcsh_cmd_deinit (rcsh_cmd_t **const self);
 void rcsh_cmd_debug (const rcsh_cmd_t *const self);
 

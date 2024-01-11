@@ -1,8 +1,6 @@
 #ifndef __JWEVANS__RCSH__CONTEXT_H_
 #define __JWEVANS__RCSH__CONTEXT_H_
 
-#define _POSIX_C_SOURCE 200809L
-
 #include <signal.h>
 #include <stdio.h>
 

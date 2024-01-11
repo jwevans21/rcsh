@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
 #define __JWEVANS__RCSH__CMD_H__INTERNAL__ 1
 
 #include <stdlib.h>
@@ -8,7 +7,7 @@
 #include <rcsh_cmd.h>
 
 rcsh_cmd_t *
-rcsh_cmd_init ()
+rcsh_cmd_init (void)
 {
   rcsh_cmd_t *self = calloc (1, sizeof (rcsh_cmd_t));
   return self;
