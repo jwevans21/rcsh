@@ -1,8 +1,7 @@
 add_library(
     rcsh_log
-    log.c
+    rcsh_log.c
 )
-
 target_include_directories(
     rcsh_log
     PUBLIC
