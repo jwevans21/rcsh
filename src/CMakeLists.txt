@@ -1,7 +1,7 @@
 add_executable(
     rcsh
 
-    main.c
+    main.c signal_handlers.c
 )
 
 target_include_directories(

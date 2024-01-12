@@ -7,12 +7,22 @@
 #include <rcsh_log.h>
 #include <rcsh_run.h>
 
+#include <signal_handlers.h>
+
 int
 main (int argc, char *argv[])
 {
   (void)argc;
   (void)argv;
   rcsh_log_set_level (RCSH_LOG_LEVEL_TRACE);
+
+  rcsh_log_trace ("Setting up signal handlers");
+  if (init_signal_handlers () == -1)
+    {
+      rcsh_log_error ("Failed to set up signal handlers");
+      return -1;
+    }
+
   rcsh_log_trace ("Initializing shell context");
   rcsh_ctx_t ctx = { 0 };
   rcsh_ctx_init (&ctx);
@@ -20,6 +30,8 @@ main (int argc, char *argv[])
   int continue_loop = 1;
   do
     {
+      rcsh_ctx_harvest_jobs (&ctx);
+
       rcsh_log_trace ("Checking for EOF in stdin");
       if (feof (stdin))
         {
@@ -32,7 +44,7 @@ main (int argc, char *argv[])
       fprintf (stderr, "%d $ ", ctx.pid);
       fflush (stdout);
 
-      rcsh_cmd_t *cmd = rcsh_cmd_from_file (stdin);
+      rcsh_cmd_t *cmd = rcsh_cmd_from_file (stdin, &ctx);
       rcsh_log_trace ("Read command from stdin");
 
       if (cmd == NULL)

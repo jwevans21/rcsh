@@ -1,6 +1,6 @@
 add_library(
     rcsh_run
-    rcsh_run.c
+    rcsh_run.c rcsh_run_external.c
 )
 
 target_include_directories(

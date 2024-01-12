@@ -1,3 +1,4 @@
+#include "rcsh_ctx.h"
 #define __JWEVANS__RCSH__CMD_H__INTERNAL__ 1
 
 #include <ctype.h>
@@ -22,7 +23,7 @@ typedef struct rcsh_cmd_parse_ctx
 } rcsh_cmd_parse_ctx_t;
 
 rcsh_cmd_t *
-rcsh_cmd_from_file (FILE *file)
+rcsh_cmd_from_file (FILE *file, rcsh_ctx_t *const ctx)
 {
   char *line = NULL;
   size_t buf_size = 0;
@@ -52,7 +53,7 @@ rcsh_cmd_from_file (FILE *file)
       return NULL;
     }
 
-  rcsh_cmd_parse (cmd, line);
+  rcsh_cmd_parse (cmd, line, ctx);
 
   free (line);
   return cmd;

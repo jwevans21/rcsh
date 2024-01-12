@@ -11,9 +11,13 @@ target_include_directories(
 target_link_libraries(
     rcsh_cmd
     PRIVATE
+    rcsh_ctx
+)
+target_link_libraries(
+    rcsh_cmd
+    PRIVATE
     rcsh_log
 )
-
 target_link_libraries(
     rcsh_cmd
     PRIVATE

@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include <rcsh_ctx.h>
+
 // typedef struct rcsh_arg {
 //   enum {
 //     RCSH_ARG_PARAMETER_EXPANSION,
@@ -37,13 +39,17 @@ typedef struct rcsh_cmd
   size_t argv_capacity;
   size_t argc;
   char **argv;
+  FILE *input;
+  FILE *output;
+  FILE *error;
+  int background;
 } rcsh_cmd_t;
 
 rcsh_cmd_t *rcsh_cmd_init (void);
 void rcsh_cmd_deinit (rcsh_cmd_t **const self);
 void rcsh_cmd_debug (const rcsh_cmd_t *const self);
 
-rcsh_cmd_t *rcsh_cmd_from_file (FILE *file);
+rcsh_cmd_t *rcsh_cmd_from_file (FILE *file, rcsh_ctx_t *const ctx);
 
 #ifdef __JWEVANS__RCSH__CMD_H__INTERNAL__
 
@@ -55,11 +61,12 @@ void rcsh_cmd_grow_argv (rcsh_cmd_t *const self);
 char rcsh_cmd_parse_escape (char **line);
 void rcsh_cmd_parse_env_var_braced (char **line, rcsh_str_t *env_var);
 void rcsh_cmd_parse_env_var_normal (char **line, rcsh_str_t *env_var);
-char *rcsh_cmd_parse_env_var (char **line);
-char *rcsh_cmd_consume_double_string (char **line);
+char *rcsh_cmd_parse_env_var (char **line, rcsh_ctx_t *const ctx);
+char *rcsh_cmd_consume_double_string (char **line, rcsh_ctx_t *const ctx);
 char *rcsh_cmd_consume_single_string (char **line);
-char *rcsh_cmd_consume_normal (char **line);
-void rcsh_cmd_parse (rcsh_cmd_t *const self, char *line);
+char *rcsh_cmd_consume_normal (char **line, rcsh_ctx_t *const ctx);
+void rcsh_cmd_parse (rcsh_cmd_t *const self, char *line,
+                     rcsh_ctx_t *const ctx);
 
 #endif // __JWEVANS__RCSH__CMD_H__INTERNAL__
 

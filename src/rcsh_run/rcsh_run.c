@@ -45,7 +45,6 @@ rcsh_run_command (rcsh_cmd_t *const cmd, rcsh_ctx_t *const ctx)
   else
     {
       rcsh_log_trace ("External command");
-      rcsh_cmd_deinit ((rcsh_cmd_t **)&cmd);
-      return RCSH_RUN_STATUS_SUCCESS;
+      return rcsh_run_external (cmd, ctx);
     }
 }

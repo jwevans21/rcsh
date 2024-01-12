@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define __JWEVANS__RCSH__CMD_H__INTERNAL__ 1
 
 #include <stdlib.h>
@@ -51,5 +52,13 @@ rcsh_cmd_debug (const rcsh_cmd_t *const self)
       rcsh_log_trace ("    [%zu] = \"%s\"", i, self->argv[i]);
     }
   rcsh_log_trace ("  }");
+  if (self->input != NULL)
+    {
+      rcsh_log_trace ("  input = %d", fileno (self->input));
+    }
+  if (self->output != NULL)
+    {
+      rcsh_log_trace ("  output = %d", fileno (self->output));
+    }
   rcsh_log_trace ("}");
 }

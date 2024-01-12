@@ -9,11 +9,11 @@
 void
 rcsh_cmd_add_arg (rcsh_cmd_t *const self, char *arg)
 {
-  rcsh_log_trace ("Adding argument \"%s\"", arg);
-  if (self == NULL)
+  if (self == NULL || arg == NULL || *arg == '\0')
     {
       return;
     }
+  rcsh_log_trace ("Adding argument \"%s\"", arg);
 
   if (self->argv_capacity <= (self->argc + 1))
     {

@@ -14,4 +14,7 @@ typedef enum rcsh_run_status
 rcsh_run_status_t rcsh_run_command (rcsh_cmd_t *const cmd,
                                     rcsh_ctx_t *const ctx);
 
+rcsh_run_status_t rcsh_run_external (rcsh_cmd_t *const cmd,
+                                     rcsh_ctx_t *const ctx);
+
 #endif
