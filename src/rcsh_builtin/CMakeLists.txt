@@ -1,6 +1,6 @@
 add_library(
     rcsh_builtin
-    cd.c exit.c status.c
+    rcsh_exit.c rcsh_status.c rcsh_cd.c
 )
 
 target_include_directories(
@@ -11,9 +11,16 @@ target_include_directories(
 
 target_link_libraries(
     rcsh_builtin
-    rcsh_log
+    PRIVATE
+    rcsh_cmd
 )
 target_link_libraries(
     rcsh_builtin
-    rcsh_command
+    PRIVATE
+    rcsh_ctx
+)
+target_link_libraries(
+    rcsh_builtin
+    PRIVATE
+    rcsh_log
 )

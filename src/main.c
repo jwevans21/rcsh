@@ -1,35 +1,85 @@
-#include "cli_args.h"
-#include "shell_loop.h"
-#include <getopt.h>
-#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
-#include <command.h>
-
+#include <rcsh_cmd.h>
+#include <rcsh_ctx.h>
 #include <rcsh_log.h>
+#include <rcsh_run.h>
 
-int main(int argc, char *argv[]) {
-  struct cli_args args = CLI_ARGS_DEFAULTS;
+#include <signal_handlers.h>
 
-  int ret = 0;
-  int leave = parse_cli_args(&args, &ret, argc, argv);
+int
+main (int argc, char *argv[])
+{
+  (void)argc;
+  (void)argv;
+  rcsh_log_set_level (RCSH_LOG_LEVEL_TRACE);
 
-  if (leave) {
-    return ret;
-  }
+  rcsh_log_trace ("Setting up signal handlers");
+  if (init_signal_handlers () == -1)
+    {
+      rcsh_log_error ("Failed to set up signal handlers");
+      return -1;
+    }
 
-  if (!args.quiet) {
-    rcsh_log_set_level(args.verbose);
-  }
+  rcsh_log_trace ("Initializing shell context");
+  rcsh_ctx_t ctx = { 0 };
+  rcsh_ctx_init (&ctx);
 
-  if (args.has_command) {
+  int continue_loop = 1;
+  do
+    {
+      rcsh_ctx_harvest_jobs (&ctx);
 
-  } else if (args.has_file) {
+      rcsh_log_trace ("Checking for EOF in stdin");
+      if (feof (stdin))
+        {
+          rcsh_log_info ("Encountered EOF on stdin");
+          continue_loop = 0;
+          break;
+        }
 
-  } else {
-    return shell_loop(&args);
-  }
+      rcsh_log_trace ("Printing shell prompt");
+      fprintf (stderr, "%d $ ", ctx.pid);
+      fflush (stdout);
 
-  return -1;
+      rcsh_cmd_t *cmd = rcsh_cmd_from_file (stdin, &ctx);
+      rcsh_log_trace ("Read command from stdin");
+
+      if (cmd == NULL)
+        {
+          rcsh_log_trace ("Command parsed was NULL, reprompting for input");
+          continue;
+        }
+
+      rcsh_cmd_debug (cmd);
+
+      rcsh_log_trace ("Running the command");
+      // NOTE: This call consumes the command (`cmd`) so it will be unusable
+      // after this. As such it is set to null after to prevent use of the
+      // command.
+      rcsh_run_status_t res = rcsh_run_command (cmd, &ctx);
+      cmd = NULL; // WARN: Do not remove for safety. See above.
+
+      rcsh_log_trace ("Checking the result of the command");
+      switch (res)
+        {
+        case RCSH_RUN_STATUS_SUCCESS:
+          rcsh_log_trace ("Command ran successfully");
+          break;
+        case RCSH_RUN_STATUS_EXIT:
+          rcsh_log_trace ("Command exited the shell");
+          continue_loop = 0;
+          break;
+        case RCSH_RUN_STATUS_FAILURE:
+          rcsh_log_trace ("Command failed to run");
+          break;
+        }
+    }
+  while (continue_loop);
+
+  rcsh_log_trace ("Deinitializing shell context");
+  rcsh_ctx_deint (&ctx);
+  return WEXITSTATUS (ctx.exit_status);
 }
