@@ -21,4 +21,16 @@ rcsh_builtin_status_t rcsh_builtin_exit (rcsh_cmd_t *const cmd,
 rcsh_builtin_status_t rcsh_builtin_status (rcsh_cmd_t *const cmd,
                                            rcsh_ctx_t *const ctx);
 
+rcsh_builtin_status_t rcsh_builtin_help (rcsh_cmd_t *const cmd,
+                                         rcsh_ctx_t *const ctx);
+
+rcsh_builtin_status_t rcsh_builtin_jobs (rcsh_cmd_t *const cmd,
+                                         rcsh_ctx_t *const ctx);
+
+rcsh_builtin_status_t rcsh_builtin_fg (rcsh_cmd_t *const cmd,
+                                       rcsh_ctx_t *const ctx);
+
+rcsh_builtin_status_t rcsh_builtin_exec (rcsh_cmd_t *const cmd,
+                                       rcsh_ctx_t *const ctx);
+
 #endif

@@ -42,6 +42,30 @@ rcsh_run_command (rcsh_cmd_t *const cmd, rcsh_ctx_t *const ctx)
 
       return (rcsh_run_status_t)rcsh_builtin_cd (cmd, ctx);
     }
+  else if (strcmp(cmd->argv[0], "help") == 0)
+    {
+      rcsh_log_trace ("Built-in command `help`");
+
+      return (rcsh_run_status_t)rcsh_builtin_help (cmd, ctx);
+    }
+  else if (strcmp(cmd->argv[0], "jobs") == 0)
+    {
+      rcsh_log_trace ("Built-in command `jobs`");
+
+      return (rcsh_run_status_t)rcsh_builtin_jobs (cmd, ctx);
+    }
+  else if (strcmp(cmd->argv[0], "fg") == 0)
+    {
+      rcsh_log_trace ("Built-in command `fg`");
+
+      return (rcsh_run_status_t)rcsh_builtin_fg (cmd, ctx);
+    }
+  else if (strcmp(cmd->argv[0], "exec") == 0)
+    {
+      rcsh_log_trace ("Built-in command `exec`");
+
+      return (rcsh_run_status_t)rcsh_builtin_exec (cmd, ctx);
+    }
   else
     {
       rcsh_log_trace ("External command");

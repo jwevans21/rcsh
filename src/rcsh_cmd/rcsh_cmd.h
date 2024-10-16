@@ -51,6 +51,9 @@ void rcsh_cmd_debug (const rcsh_cmd_t *const self);
 
 rcsh_cmd_t *rcsh_cmd_from_file (FILE *file, rcsh_ctx_t *const ctx);
 
+void rcsh_cmd_parse (rcsh_cmd_t *const self, char *line,
+                     rcsh_ctx_t *const ctx);
+
 #ifdef __JWEVANS__RCSH__CMD_H__INTERNAL__
 
 #include <rcsh_str.h>
@@ -65,8 +68,6 @@ char *rcsh_cmd_parse_env_var (char **line, rcsh_ctx_t *const ctx);
 char *rcsh_cmd_consume_double_string (char **line, rcsh_ctx_t *const ctx);
 char *rcsh_cmd_consume_single_string (char **line);
 char *rcsh_cmd_consume_normal (char **line, rcsh_ctx_t *const ctx);
-void rcsh_cmd_parse (rcsh_cmd_t *const self, char *line,
-                     rcsh_ctx_t *const ctx);
 
 #endif // __JWEVANS__RCSH__CMD_H__INTERNAL__
 

@@ -16,17 +16,20 @@ language.
     - [X] `-h` `-?` Print help message and exit
     - [X] `-V` Print version and exit
     - [X] `-v` Verbose mode (used for debugging the shell)
-- [ ] Basic input/output redirection
-- [ ] Background commands
-- [ ] Basic signal handling
+- [X] Basic input/output redirection
+    - Input Redirection: `cat <infile` (no space between `<` and the filename)
+    - Output Redirection: `ls >outfile` (no space between `>` and the filename)
+- [X] Background commands
+- [X] Basic signal handling
 - [ ] More complex command parsing
-    - [ ] Quoted strings
-    - [ ] Environment variable substitution
+    - [X] Quoted strings
+    - [X] Environment variable substitution
     - [ ] Environment variable creation
-- [ ] Additional builtin commands
-    - [ ] `jobs` List the background processes
-    - [ ] `fg` Move background process to foreground
-    - [ ] `exec` Replace the current process with the new command
+- [X] Additional builtin commands
+    - [X] `jobs` List the background processes
+    - [X] `fg` Move background process to foreground
+        - Partial, does not reinitialize signal handlers for the process
+    - [X] `exec` Replace the current process with the new command
 
 ## Usage
 

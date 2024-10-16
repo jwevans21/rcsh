@@ -1,6 +1,6 @@
 add_library(
     rcsh_builtin
-    rcsh_exit.c rcsh_status.c rcsh_cd.c
+    rcsh_exit.c rcsh_status.c rcsh_cd.c rcsh_help.c rcsh_jobs.c rcsh_fg.c rcsh_exec.c
 )
 
 target_include_directories(

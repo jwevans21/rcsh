@@ -1,6 +1,8 @@
+#include "rcsh_ctx.h"
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -118,7 +120,7 @@ rcsh_run_external (rcsh_cmd_t *const cmd, rcsh_ctx_t *const ctx)
         }
 
       int status = 0;
-      int ret = waitpid (child, &status, 0);
+      int ret = waitpid (child, &status, WUNTRACED);
       if (ret == -1)
         {
           rcsh_log_error ("waitpid() failed");
@@ -138,6 +140,28 @@ rcsh_run_external (rcsh_cmd_t *const cmd, rcsh_ctx_t *const ctx)
       else if (WIFSTOPPED (status))
         {
           rcsh_log_trace ("Child stopped by signal %d", WSTOPSIG (status));
+
+          ctx->exit_status = 0;
+
+          job_t *job = ctx->jobs;
+          while (job != NULL && job->next != NULL)
+            {
+              job = job->next;
+            }
+
+          job_t *new_job = malloc (sizeof (job_t));
+          new_job->pid = child;
+          new_job->cmd = strdup (cmd->argv[0]);
+          new_job->next = NULL;
+
+          if (job == NULL)
+            {
+              ctx->jobs = new_job;
+            }
+          else
+            {
+              job->next = new_job;
+            }
         }
       else if (WIFCONTINUED (status))
         {
